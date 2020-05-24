@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup as soup
 from urllib.request import urlopen, Request
 # import pprint
 from pprint import pprint as pp
+#import RegEx
+import re
 
 # URL to billboard current billboard top 100
 page_url = "https://www.billboard.com/charts/hot-100"
@@ -36,37 +38,68 @@ Item structure
 
 Data object -
 
-filtered_songs_list = {'rank': ('song','artist')}
+filtered_songs_list = {'rank': ('song name',['artist'])}
 """
 
 # get all song items
 all_songs = page_soup.findAll("button", "chart-element__wrapper")
 
-# define list to hold all songs
-songs_list = list()
 
-# get details for each song
-for song in all_songs:
+# get full list of all songs   
+def getFullList():
     
-    # song rank
-    song_rank = song.find("span", "chart-element__rank__number").text
+    # define list to hold all songs
+    songs_list = dict()
+
+    # get details for each song
+    for song in all_songs:
+        
+        # song rank
+        song_rank = song.find("span", "chart-element__rank__number").text
+        
+        # song name
+        song_name = song.find("span", "chart-element__information__song").text
+        
+        # song artist name
+        # splits multiple artists names by '&' and other extra chars
+        # strips each name from extra spaces around
+        # stores in a list
+        song_artist: list = [artist.strip() for artist in re.split('&|Featuring| x ', song.find("span", "chart-element__information__artist").text)]
+        
+        # add it to the list
+        songs_list.update({
+            song_rank:
+            (
+                song_name, song_artist
+            )
+        })
+        
+    return songs_list
     
-    # song name
-    song_name = song.find("span", "chart-element__information__song").text
+
+# get list of all songs
+all_songs_list: dict = getFullList()
+
+print(len(all_songs_list))
+
+# 
+
+print(all_songs_list)
+
+# get list of songs of specific artist(s)
+def filteredList(artistName: list):
     
-    # song artist name
-    song_artist = song.find("span", "chart-element__information__artist").text
-    
-    # add it to the list
-    songs_list.append({
-        song_rank:
-        (
-            song_name, song_artist
+    return dict(
+        filter(
+            lambda song_item: True,
+            all_songs_list.items()
         )
-    })
+    )
     
-# print out top 10 songs
-pp(songs_list[:10])
+
+#print(filteredList(["6ix9ine"]))
+    
+
 
 # Next steps:
 # 1. Filter out songs based on artist name provided over command line as argument
