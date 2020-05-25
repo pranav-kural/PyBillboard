@@ -4,8 +4,10 @@ from bs4 import BeautifulSoup as soup
 from urllib.request import urlopen, Request
 # import pprint
 from pprint import pprint as pp
-#import RegEx
-import re
+
+
+# import function to search for artist name in list of songs
+from filtercollection import getArtistsSongsList
 
 # URL to billboard current billboard top 100
 page_url = "https://www.billboard.com/charts/hot-100"
@@ -24,35 +26,21 @@ page_soup = soup(client_object.read(), "html.parser")
 client_object.close()
 
 ## TEST: print out title from soup contents to verify data loaded successfully
-print(page_soup.title.text.replace('100', '10'))
+print(page_soup.title.text)
 
+# get all song items from web page
+songs_web_component = page_soup.findAll("button", "chart-element__wrapper")
 
-""" 
-Item structure
-
-(button) chart-element__wrapper -  whole one box
-	(span) chart-element__rank - song rank
-	(span) chart-element__information - info box
-		(span) chart-element__information__song - song name
-		(span) chart-element__information__artist - artist
-
-Data object -
-
-filtered_songs_list = {'rank': ('song name',['artist'])}
-"""
-
-# get all song items
-all_songs = page_soup.findAll("button", "chart-element__wrapper")
 
 
 # get full list of all songs   
-def getFullList():
+def getListOfAllSongs(songs_collection):
     
     # define list to hold all songs
     songs_list = dict()
 
     # get details for each song
-    for song in all_songs:
+    for song in songs_collection:
         
         # song rank
         song_rank = song.find("span", "chart-element__rank__number").text
@@ -61,10 +49,7 @@ def getFullList():
         song_name = song.find("span", "chart-element__information__song").text
         
         # song artist name
-        # splits multiple artists names by '&' and other extra chars
-        # strips each name from extra spaces around
-        # stores in a list
-        song_artist: list = [artist.strip() for artist in re.split('&|Featuring| x ', song.find("span", "chart-element__information__artist").text)]
+        song_artist = song.find("span", "chart-element__information__artist").text
         
         # add it to the list
         songs_list.update({
@@ -77,28 +62,24 @@ def getFullList():
     return songs_list
     
 
-# get list of all songs
-all_songs_list: dict = getFullList()
 
-print(len(all_songs_list))
-
-# 
-
-print(all_songs_list)
-
-# get list of songs of specific artist(s)
-def filteredList(artistName: list):
+# get and return list of songs for a specicif artist
+def getFilteredSongsListByArtist(songs_collection: dict, artist_name: str):
     
-    return dict(
-        filter(
-            lambda song_item: True,
-            all_songs_list.items()
-        )
-    )
-    
+    return getArtistsSongsList(songs_collection, artist_name)
 
-#print(filteredList(["6ix9ine"]))
+
+
+def test():
     
+    #print(getListOfAllSongs(songs_web_component))
+    
+    # print(getFilteredSongsListByArtist(getListOfAllSongs(songs_web_component), '6ix9ine'))
+    # print(getFilteredSongsListByArtist(getListOfAllSongs(songs_web_component), 'Noah'))
+    # print(getFilteredSongsListByArtist(getListOfAllSongs(songs_web_component), 'Drake'))
+    # print(getFilteredSongsListByArtist(getListOfAllSongs(songs_web_component), 'Fivio Foreign'))
+
+
 
 
 # Next steps:
