@@ -1,4 +1,4 @@
-
+# Filter songs collection
 
 # import reduce function
 from functools import reduce
@@ -81,8 +81,7 @@ def getArtistsSongsList(songs_collection: dict, artist_name: str):
     
     return dict(
         filter(
-            lambda song_item: 
-                containsName(getArtistsNames(song_item[1][1]), artist_name),
+            lambda song_item: containsName(getArtistsNames(song_item[1][1]), artist_name),
             songs_collection.items()
         )
     )
